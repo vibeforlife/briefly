@@ -11,10 +11,11 @@ export type NewsArticle = {
   imageUrl?: string;
 };
 
-// Base URL of your Cloudflare Worker proxy
-const PROXY_BASE_URL = import.meta.env.VITE_NEWS_PROXY_BASE as string;
+// Hard-code the Cloudflare Worker proxy URL so it works in GitHub Pages builds
+// Replace the URL below with your actual Worker URL.
+const PROXY_BASE_URL = "https://briefly-news-proxy.listen2meagain25.workers.dev";
 
-// Keep the same topic → category mapping
+// Map our topics to NewsAPI categories for top-headlines.
 const topicToCategory: Record<string, string> = {
   top: "general",
   politics: "general",
@@ -35,7 +36,7 @@ export async function fetchNews(params: {
   searchTerm: string;
 }): Promise<NewsArticle[]> {
   if (!PROXY_BASE_URL) {
-    console.warn("VITE_NEWS_PROXY_BASE is not set. Returning empty article list.");
+    console.warn("PROXY_BASE_URL is not set. Returning empty article list.");
     return [];
   }
 
