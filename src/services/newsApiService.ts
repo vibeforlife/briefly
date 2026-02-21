@@ -1,5 +1,4 @@
 // src/services/newsApiService.ts
-import axios from "axios";
 import { isLikelyPaywalled } from "./paywallService";
 
 export type NewsArticle = {
@@ -9,12 +8,13 @@ export type NewsArticle = {
   source: string;
   publishedAt: string;
   isPaywalled: boolean;
-  imageUrl?: string; 
+  imageUrl?: string;
 };
 
-const BASE_URL = "https://newsapi.org/v2";
+// Base URL of your Cloudflare Worker proxy
+const PROXY_BASE_URL = import.meta.env.VITE_NEWS_PROXY_BASE as string;
 
-// Map our topics to NewsAPI categories for top-headlines. [web:90]
+// Keep the same topic → category mapping
 const topicToCategory: Record<string, string> = {
   top: "general",
   politics: "general",
@@ -31,13 +31,11 @@ const topicToCategory: Record<string, string> = {
 };
 
 export async function fetchNews(params: {
-  topic: string;      // our Topic id
+  topic: string; // our Topic id
   searchTerm: string;
 }): Promise<NewsArticle[]> {
-  const apiKey = import.meta.env.VITE_NEWSAPI_KEY;
-  console.log("API key present?", !!apiKey);
-  if (!apiKey) {
-    console.warn("VITE_NEWSAPI_KEY is not set. Returning empty article list.");
+  if (!PROXY_BASE_URL) {
+    console.warn("VITE_NEWS_PROXY_BASE is not set. Returning empty article list.");
     return [];
   }
 
@@ -45,22 +43,21 @@ export async function fetchNews(params: {
   const hasSearch = searchTerm.trim().length > 0;
 
   // Strategy:
-  // - If user typed a search term OR topic is "all" → use /everything (full-text search). [web:82]
-  // - Else → use /top-headlines with category/country. [web:90]
+  // - If user typed a search term OR topic is "all" → use /everything (full-text search).
+  // - Else → use /top-headlines with category/country.
   const useEverything = hasSearch || topic === "all";
 
   let url: URL;
 
   if (useEverything) {
-    url = new URL(`${BASE_URL}/everything`);
+    url = new URL("/v2/everything", PROXY_BASE_URL);
     url.searchParams.set("language", "en");
     url.searchParams.set("sortBy", "publishedAt");
     url.searchParams.set("pageSize", "40");
-    // If search term is empty but topic = all, use a broad query to avoid empty q.
     const q = hasSearch ? searchTerm.trim() : "news";
     url.searchParams.set("q", q);
   } else {
-    url = new URL(`${BASE_URL}/top-headlines`);
+    url = new URL("/v2/top-headlines", PROXY_BASE_URL);
     url.searchParams.set("language", "en");
 
     if (topic === "canada") {
@@ -75,12 +72,14 @@ export async function fetchNews(params: {
     }
   }
 
-  const response = await axios.get(url.toString(), {
-    headers: { "X-Api-Key": apiKey },
-  });
+  const response = await fetch(url.toString());
+  if (!response.ok) {
+    console.error("News proxy error", response.status, await response.text());
+    return [];
+  }
 
-  const data = response.data;
-  console.log("NewsAPI response", data);
+  const data = await response.json();
+  console.log("News proxy response", data);
 
   if (!data || !Array.isArray(data.articles)) {
     return [];
