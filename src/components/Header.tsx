@@ -41,16 +41,19 @@ function Header({
       <div className={styles.titleBlock}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {/* App icon in header */}
-          <img
-            src="/briefly4u-icon-192.png"
-            alt="Briefly4U icon"
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 6,
-              flexShrink: 0,
-            }}
-          />
+
+
+<img
+  src="briefly4u-icon-192.png"
+  alt="Briefly4U icon"
+  style={{
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    flexShrink: 0,
+  }}
+/>
+
           <h1
             className={styles.title}
             style={{ color: isDark ? "#f9fafb" : "#111827" }}
