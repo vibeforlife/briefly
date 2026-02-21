@@ -1,0 +1,43 @@
+/* src/components/ArticleList.module.css */
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.list.comfy {
+  gap: 12px;
+}
+
+.list.compact {
+  gap: 6px;
+}
+
+.status {
+  font-size: 13px;
+}
+
+.emptyBox {
+  font-size: 13px;
+  padding: 14px;
+  border-radius: 8px;
+}
+
+.emptyList {
+  margin: 6px 0 0 16px;
+  padding: 0;
+}
+
+@media (max-width: 640px) {
+  .list.comfy {
+    gap: 10px;
+  }
+
+  .list.compact {
+    gap: 4px;
+  }
+
+  .emptyBox {
+    font-size: 0.8rem;
+  }
+}
