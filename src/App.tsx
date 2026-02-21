@@ -1,4 +1,5 @@
 // src/App.tsx
+import TestSyncPanel from "./TestSyncPanel";
 import { useEffect, useRef, useState } from "react";
 import type { NewsArticle } from "./services/newsApiService";
 import { fetchNews } from "./services/newsApiService";
@@ -353,6 +354,7 @@ function App() {
           }}
         >
           {/* Control panel */}
+          <TestSyncPanel />
           <div
             style={{
               marginBottom: "14px",
