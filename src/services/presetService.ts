@@ -1,7 +1,6 @@
 // src/services/presetService.ts
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
-import { getUserId } from "./userId";
 
 export type Preset = {
   id: string;
@@ -13,18 +12,14 @@ export type Preset = {
 export type UserPrefsDoc = {
   presets?: Preset[];
   pinnedSources?: string[];
+  updatedAt?: string;
 };
 
-function getUserPrefsRef() {
-  const userId = getUserId();
-  // Collection "userPrefs", document per user
-  return doc(db, "userPrefs", userId);
-}
+const REF = doc(db, "userPrefs", "owner");
 
 export async function loadPresets(): Promise<Preset[]> {
   try {
-    const ref = getUserPrefsRef();
-    const snap = await getDoc(ref);
+    const snap = await getDoc(REF);
     if (!snap.exists()) return [];
     const data = snap.data() as UserPrefsDoc;
     return data.presets ?? [];
@@ -36,9 +31,11 @@ export async function loadPresets(): Promise<Preset[]> {
 
 export async function savePresets(presets: Preset[]): Promise<void> {
   try {
-    const ref = getUserPrefsRef();
-    const payload: UserPrefsDoc = { presets };
-    await setDoc(ref, payload, { merge: true });
+    const payload: UserPrefsDoc = {
+      presets,
+      updatedAt: new Date().toISOString(),
+    };
+    await setDoc(REF, payload, { merge: true });
   } catch (e) {
     console.error("savePresets Firestore error", e);
     throw e;

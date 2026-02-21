@@ -2,22 +2,17 @@
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import type { NewsArticle } from "./newsApiService";
-import { getUserId } from "./userId";
 
 export type BookmarkDoc = {
   articles: NewsArticle[];
+  updatedAt?: string;
 };
 
-function getBookmarkRef() {
-  const userId = getUserId();
-  // Collection "bookmarks", document per user
-  return doc(db, "bookmarks", userId);
-}
+const REF = doc(db, "bookmarks", "owner");
 
 export async function loadBookmarks(): Promise<NewsArticle[]> {
   try {
-    const ref = getBookmarkRef();
-    const snap = await getDoc(ref);
+    const snap = await getDoc(REF);
     if (!snap.exists()) return [];
     const data = snap.data() as BookmarkDoc;
     return data.articles ?? [];
@@ -29,9 +24,11 @@ export async function loadBookmarks(): Promise<NewsArticle[]> {
 
 export async function saveBookmarks(articles: NewsArticle[]): Promise<void> {
   try {
-    const ref = getBookmarkRef();
-    const payload: BookmarkDoc = { articles };
-    await setDoc(ref, payload, { merge: true });
+    const payload: BookmarkDoc = {
+      articles,
+      updatedAt: new Date().toISOString(),
+    };
+    await setDoc(REF, payload, { merge: true });
   } catch (e) {
     console.error("saveBookmarks Firestore error", e);
     throw e;
